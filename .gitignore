@@ -1,0 +1,44 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+.report/
+
+# Node.js
+# Caches
+.npm
+.eslintcache
+.vite-inspect
+
+# Dependencies
+/node_modules
+
+# Build files
+/dist
+/build
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Vite-specific
+.vite/
+
+*.txt
