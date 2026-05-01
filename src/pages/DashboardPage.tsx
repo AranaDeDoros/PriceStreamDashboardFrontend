@@ -35,7 +35,7 @@ const CopyableId: React.FC<{ id: string }> = ({ id }) => {
       </span>
 
       <div
-        className={`pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 rounded-md bg-gray-800 px-2 py-1 text-xs text-white shadow-md transition-all duration-200 ${
+        className={`pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 rounded-md bg-gray-800 px-2 py-1 text-xs text-white shadow-xl transition-all duration-200 ${
           copied ? 'translate-y-0 opacity-100' : 'translate-y-1 opacity-0'
         }`}
       >
@@ -49,23 +49,47 @@ const CopyableId: React.FC<{ id: string }> = ({ id }) => {
 const getStatusColor = (status: string) => {
   switch (status.toLowerCase()) {
     case 'completed':
-      return 'bg-emerald-100 text-emerald-700';
+      return 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm shadow-emerald-500/10';
     case 'failed':
-      return 'bg-red-100 text-red-700';
+      return 'bg-red-50 text-red-700 border-red-200 shadow-sm shadow-red-500/10';
     case 'running':
-      return 'bg-blue-100 text-blue-700';
+      return 'bg-blue-50 text-blue-700 border-blue-200 shadow-sm shadow-blue-500/10';
     default:
-      return 'bg-gray-100 text-gray-700';
+      return 'bg-gray-50 text-gray-700 border-gray-200 shadow-sm';
   }
 };
 
 const COLORS = ['#6366F1', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
 const DashboardPage: React.FC = () => {
-  const { data: runs, error, isLoading, refetch, isFetching } = useAllRuns();
-  const { data: platforms, error: platformError, isLoading: platformLoading } = useAllPlatforms();
+  const {
+    data: runs,
+    error,
+    isLoading,
+    refetch,
+    isFetching,
+    dataUpdatedAt: runsUpdatedAt,
+  } = useAllRuns();
+  const {
+    data: platforms,
+    error: platformError,
+    isLoading: platformLoading,
+    dataUpdatedAt: platformsUpdatedAt,
+  } = useAllPlatforms();
   const [statusFilter, setStatusFilter] = React.useState<string>('all');
   const [platformFilter, setPlatformFilter] = React.useState<string>('all');
+
+  const lastUpdated = Math.max(runsUpdatedAt, platformsUpdatedAt);
+  const formattedLastUpdated = React.useMemo(() => {
+    return lastUpdated > 0
+      ? new Date(lastUpdated).toLocaleTimeString(undefined, {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+        })
+      : 'Never';
+  }, [lastUpdated]);
 
   const filteredRuns = React.useMemo(() => {
     if (!runs) return [];
@@ -94,7 +118,7 @@ const DashboardPage: React.FC = () => {
         header: () => 'Status',
         cell: (info) => (
           <span
-            className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusColor(
+            className={`rounded-full border px-3 py-1 text-xs font-bold ${getStatusColor(
               info.getValue(),
             )}`}
           >
@@ -164,7 +188,13 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="mx-auto max-w-7xl space-y-10 p-6">
-      <h1 className="text-3xl font-bold text-gray-800">Ingestion Dashboard</h1>
+      <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+        <h1 className="text-4xl font-black tracking-tight text-gray-800">Ingestion Dashboard</h1>
+        <div className="flex items-center gap-2 text-sm font-bold text-gray-400 uppercase tracking-widest">
+          <div className={`h-2 w-2 rounded-full ${isFetching ? 'animate-pulse bg-indigo-500' : 'bg-emerald-500'}`} />
+          Last updated: <span className="text-gray-600">{formattedLastUpdated}</span>
+        </div>
+      </div>
 
       {/* Metrics */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -175,51 +205,66 @@ const DashboardPage: React.FC = () => {
       </div>
 
       {/* Refresh */}
-      <button
-        onClick={() => refetch()}
-        disabled={isFetching}
-        className="rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-700 disabled:opacity-50"
-      >
-        {isFetching ? 'Refreshing...' : 'Refresh'}
-      </button>
-
-      {/* Filters */}
       <div className="flex items-center gap-4">
-        <span className="text-sm font-medium text-gray-600">Filter by status:</span>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="cursor-pointer rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+        <button
+          onClick={() => refetch()}
+          disabled={isFetching}
+          className="flex cursor-pointer items-center gap-2 rounded-lg bg-linear-to-r from-indigo-600 to-indigo-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-all hover:from-indigo-700 hover:to-indigo-600 hover:shadow-indigo-500/25 active:scale-95 disabled:opacity-50 disabled:active:scale-100"
         >
-          <option value="all">All</option>
-          <option value="completed">Completed</option>
-          <option value="failed">Failed</option>
-          <option value="running">Running</option>
-        </select>
-      </div>
-
-      <div className="flex items-center gap-4">
-        <span className="text-sm font-medium text-gray-600">Filter by platform:</span>
-        <select
-          value={platformFilter}
-          onChange={(e) => setPlatformFilter(e.target.value)}
-          className="cursor-pointer rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-        >
-          <option value="all">All</option>
-          {platforms && platforms.length > 0 ? (
-            platforms.map((platform) => (
-              <option key={platform.id} value={platform.name}>
-                {platform.name}
-              </option>
-            ))
+          {isFetching ? (
+            <>
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              Refreshing...
+            </>
           ) : (
-            <option disabled>Loading platforms...</option>
+            'Refresh'
           )}
-        </select>
+        </button>
+
+        {/* Filters */}
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold tracking-wider text-gray-500 uppercase">
+              Status:
+            </span>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium shadow-sm transition-all hover:border-gray-300 hover:shadow-md focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+            >
+              <option value="all">All</option>
+              <option value="completed">Completed</option>
+              <option value="failed">Failed</option>
+              <option value="running">Running</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold tracking-wider text-gray-500 uppercase">
+              Platform:
+            </span>
+            <select
+              value={platformFilter}
+              onChange={(e) => setPlatformFilter(e.target.value)}
+              className="cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium shadow-sm transition-all hover:border-gray-300 hover:shadow-md focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+            >
+              <option value="all">All</option>
+              {platforms && platforms.length > 0 ? (
+                platforms.map((platform) => (
+                  <option key={platform.id} value={platform.name}>
+                    {platform.name}
+                  </option>
+                ))
+              ) : (
+                <option disabled>Loading...</option>
+              )}
+            </select>
+          </div>
+        </div>
       </div>
 
       {/* Table */}
-      <div className="h-128 overflow-y-scroll rounded-2xl bg-[#566999] p-6 shadow-lg">
+      <div className="h-128 overflow-y-scroll rounded-2xl border border-[#4a5a82] bg-gradient-to-br from-[#566999] to-[#485985] p-6 shadow-2xl">
         <div className="overflow-x-auto">
           <table className="min-w-full border-separate border-spacing-y-2">
             <thead>
@@ -228,7 +273,7 @@ const DashboardPage: React.FC = () => {
                   {headerGroup.headers.map((header) => (
                     <th
                       key={header.id}
-                      className="px-4 py-2 text-left text-xs font-semibold tracking-wide text-[#ddd] uppercase"
+                      className="px-4 py-2 text-left text-xs font-bold tracking-widest text-indigo-100/70 uppercase"
                     >
                       {flexRender(header.column.columnDef.header, header.getContext())}
                     </th>
@@ -240,10 +285,13 @@ const DashboardPage: React.FC = () => {
               {table.getRowModel().rows.map((row) => (
                 <tr
                   key={row.id}
-                  className="cursor-pointer rounded-xl bg-[#d3dcf2] transition hover:bg-gray-100"
+                  className="group cursor-pointer rounded-xl bg-gradient-to-r from-[#d3dcf2] to-[#c5d1eb] shadow-sm transition-all hover:from-white hover:to-white hover:shadow-md active:scale-[0.99]"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="px-4 py-3 text-sm">
+                    <td
+                      key={cell.id}
+                      className="px-4 py-3 text-sm font-medium text-gray-700 transition-colors group-hover:text-indigo-900"
+                    >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}
@@ -255,32 +303,43 @@ const DashboardPage: React.FC = () => {
       </div>
 
       {/* Chart */}
-      <div className="rounded-2xl bg-[#d3dcf2] p-6 shadow-lg">
-        <h2 className="mb-4 text-xl font-semibold text-gray-700">Runs by Status (all data)</h2>
+      <div className="rounded-2xl border border-[#b8c5e6] bg-gradient-to-br from-[#d3dcf2] to-[#c5d1eb] p-6 shadow-xl">
+        <h2 className="mb-6 text-xl font-bold text-gray-800">Runs by Status</h2>
 
         <ResponsiveContainer
           width="100%"
           height={350}
-          style={{ backgroundColor: '#f0f3fc', borderRadius: '12px' }}
+          style={{
+            backgroundColor: 'rgba(255, 255, 255, 0.4)',
+            borderRadius: '16px',
+            backdropFilter: 'blur(4px)',
+            border: '1px solid rgba(255, 255, 255, 0.5)',
+          }}
         >
           <PieChart>
-            <Tooltip />
+            <Tooltip
+              contentStyle={{
+                borderRadius: '12px',
+                border: 'none',
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+              }}
+            />
             <Pie
               data={statusData}
               cx="50%"
               cy="50%"
               innerRadius={70}
               outerRadius={110}
-              paddingAngle={3}
+              paddingAngle={5}
               dataKey="value"
               nameKey="name"
-              label
+              label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
             >
               {statusData.map((_entry, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
-            <Legend verticalAlign="bottom" height={36} />
+            <Legend verticalAlign="bottom" height={36} iconType="circle" />
           </PieChart>
         </ResponsiveContainer>
       </div>
@@ -290,9 +349,10 @@ const DashboardPage: React.FC = () => {
 
 /* Small Stat Card */
 const StatCard: React.FC<{ label: string; value?: number }> = ({ label, value }) => (
-  <div className="rounded-xl bg-[#566999] p-4 shadow-md">
-    <div className="text-sm text-[#ddd]">{label}</div>
-    <div className="mt-2 text-2xl font-bold text-[#ddd]">{value ?? 0}</div>
+  <div className="group rounded-xl border border-[#4a5a82] bg-gradient-to-br from-[#566999] to-[#485985] p-5 shadow-xl transition-all hover:-translate-y-1 hover:shadow-2xl hover:brightness-110">
+    <div className="text-xs font-bold tracking-wider text-indigo-100/60 uppercase">{label}</div>
+    <div className="mt-2 text-3xl font-black text-white">{value ?? 0}</div>
+    <div className="mt-2 h-1 w-0 bg-indigo-400 transition-all group-hover:w-full" />
   </div>
 );
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, KeyRound, LogIn, FileExclamationPoint } from 'lucide-react';
+import { User, KeyRound, LogIn, FileExclamationPoint, LayoutDashboard } from 'lucide-react';
 import { useLogin } from '../api/auth';
 import { setAuthTokens } from '../api/client';
 import { useNavigate } from 'react-router-dom';
@@ -33,63 +33,67 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
-      <div className="w-full max-w-md rounded-2xl bg-[#d3dcf2] p-8 shadow-lg">
-        <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">Sign in</h1>
+    <div className="flex min-h-screen items-center justify-center bg-linear-to-tr from-gray-100 to-indigo-50 px-4">
+      <div className="w-full max-w-md rounded-3xl border border-[#b8c5e6] bg-linear-to-br from-[#d3dcf2] to-[#c5d1eb] p-10 shadow-2xl">
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-br from-[#566999] to-[#4a5a82] shadow-lg">
+            <LayoutDashboard className="h-6 w-6 text-indigo-300 group-hover:text-white" />
+          </div>
+          <h1 className="text-3xl font-black tracking-tight text-gray-800">Welcome Back</h1>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="inline-flex w-full items-center rounded-lg border border-gray-300 px-3 py-2 transition">
-            <label htmlFor="username" className="mb-1 block text-sm font-medium text-gray-700">
-              <User className="mr-3 inline h-10 w-10" />
-            </label>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="group relative">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 transition-colors group-focus-within:text-indigo-600">
+              <User className="h-5 w-5 text-gray-400 group-focus-within:text-indigo-500" />
+            </div>
             <input
               type="text"
               id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full rounded-lg px-3 py-2 transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="username"
+              className="block w-full rounded-xl border border-gray-200 bg-white/80 py-3 pr-3 pl-10 text-sm font-medium shadow-sm backdrop-blur-sm transition-all hover:border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+              placeholder="Username"
+              required
             />
           </div>
-          <div className="inline-flex w-full items-center rounded-lg border border-gray-300 px-3 py-2 transition">
-            <label htmlFor="password" className="mb-1 block text-sm font-medium text-gray-700">
-              <KeyRound className="mr-3 inline h-10 w-10" />
-            </label>
+
+          <div className="group relative">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 transition-colors group-focus-within:text-indigo-600">
+              <KeyRound className="h-5 w-5 text-gray-400 group-focus-within:text-indigo-500" />
+            </div>
             <input
               type="password"
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg px-3 py-2 transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="password"
+              className="block w-full rounded-xl border border-gray-200 bg-white/80 py-3 pr-3 pl-10 text-sm font-medium shadow-sm backdrop-blur-sm transition-all hover:border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+              placeholder="Password"
+              required
             />
           </div>
+
           {error && (
-            <div className="animate-pulse rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600 transition-discrete">
-              <FileExclamationPoint className="mr-2 inline h-4 w-4" />
+            <div className="animate-in fade-in zoom-in flex items-center gap-2 rounded-xl border border-red-200 bg-red-50/50 px-4 py-3 text-sm font-semibold text-red-600 backdrop-blur-sm duration-300">
+              <FileExclamationPoint className="h-4 w-4 shrink-0" />
               {error}
             </div>
           )}
-          <div className="inline-flex w-full items-center rounded-lg px-3 py-2 transition">
-            <button
-              type="submit"
-              disabled={isPending}
-              className={`w-full transform cursor-pointer rounded-lg bg-[#566999] py-2 font-medium transition ${
-                isPending
-                  ? 'cursor-not-allowed bg-[#566999] opacity-70'
-                  : 'bg-[#566999] opacity-100 hover:bg-[#7b8dba] active:scale-[0.98]'
-              } text-white`}
-            >
-              {isPending ? (
-                'Signing in...'
-              ) : (
-                <>
-                  <LogIn className="mr-3 inline h-5 w-5" />
-                  <span>Login</span>
-                </>
-              )}
-            </button>
-          </div>
+
+          <button
+            type="submit"
+            disabled={isPending}
+            className="relative flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#566999] to-[#4a5a82] py-3.5 text-sm font-bold text-white shadow-xl transition-all hover:shadow-indigo-900/20 hover:brightness-110 active:scale-95 disabled:opacity-70 disabled:active:scale-100"
+          >
+            {isPending ? (
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            ) : (
+              <>
+                <LogIn className="h-5 w-5" />
+                <span>Sign In</span>
+              </>
+            )}
+          </button>
         </form>
       </div>
     </div>
