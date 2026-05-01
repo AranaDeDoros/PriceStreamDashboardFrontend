@@ -1,8 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import api from './client';
+import api, { API_URL } from './client';
 import type { Run } from '../domain/api_contract';
-
-const API_URL = import.meta.env.VITE_API_URL;
 
 const fetchAllRuns = async (): Promise<Run[]> => {
   try {
