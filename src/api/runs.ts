@@ -23,6 +23,8 @@ export const useAllRuns = () => {
   return useQuery<Run[], Error>({
     queryKey: ['allRuns'],
     queryFn: fetchAllRuns,
+    refetchInterval: 10 * 60 * 1000, // 10 minutes
+    refetchOnWindowFocus: true,
   });
 };
 

@@ -9,6 +9,7 @@ import {
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import type { Run } from '../domain/api_contract';
 import Card from '../components/Card';
+import { useAllPlatforms } from '../api/platforms';
 
 const columnHelper = createColumnHelper<Run>();
 
@@ -61,14 +62,19 @@ const getStatusColor = (status: string) => {
 const COLORS = ['#6366F1', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
 const DashboardPage: React.FC = () => {
-  const { data: runs, error, isLoading } = useAllRuns();
+  const { data: runs, error, isLoading, refetch, isFetching } = useAllRuns();
+  const { data: platforms, error: platformError, isLoading: platformLoading } = useAllPlatforms();
   const [statusFilter, setStatusFilter] = React.useState<string>('all');
+  const [platformFilter, setPlatformFilter] = React.useState<string>('all');
 
   const filteredRuns = React.useMemo(() => {
     if (!runs) return [];
-    if (statusFilter === 'all') return runs;
-    return runs.filter((r) => r.status.toLowerCase() === statusFilter);
-  }, [runs, statusFilter]);
+    return runs.filter((r) => {
+      const matchStatus = statusFilter === 'all' || r.status.toLowerCase() === statusFilter;
+      const matchPlatform = platformFilter === 'all' || r.platform === platformFilter;
+      return matchStatus && matchPlatform;
+    });
+  }, [runs, statusFilter, platformFilter]);
 
   const columns = React.useMemo(
     () => [
@@ -132,8 +138,16 @@ const DashboardPage: React.FC = () => {
     return <Card title="Loading..." text="Fetching runs from the server. Please wait." />;
   }
 
+  if (platformLoading) {
+    return <Card title="Loading..." text="Fetching platforms from the server. Please wait." />;
+  }
+
   if (error) {
     return <Card title="Error" text={`Error loading runs: ${error.message}`} />;
+  }
+
+  if (platformError) {
+    return <Card title="Error" text={`Error loading platforms: ${platformError.message}`} />;
   }
 
   if (!runs || runs.length === 0) {
@@ -160,7 +174,16 @@ const DashboardPage: React.FC = () => {
         <StatCard label="Running" value={stats.running} />
       </div>
 
-      {/* Filter */}
+      {/* Refresh */}
+      <button
+        onClick={() => refetch()}
+        disabled={isFetching}
+        className="rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-700 disabled:opacity-50"
+      >
+        {isFetching ? 'Refreshing...' : 'Refresh'}
+      </button>
+
+      {/* Filters */}
       <div className="flex items-center gap-4">
         <span className="text-sm font-medium text-gray-600">Filter by status:</span>
         <select
@@ -172,6 +195,26 @@ const DashboardPage: React.FC = () => {
           <option value="completed">Completed</option>
           <option value="failed">Failed</option>
           <option value="running">Running</option>
+        </select>
+      </div>
+
+      <div className="flex items-center gap-4">
+        <span className="text-sm font-medium text-gray-600">Filter by platform:</span>
+        <select
+          value={platformFilter}
+          onChange={(e) => setPlatformFilter(e.target.value)}
+          className="cursor-pointer rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+        >
+          <option value="all">All</option>
+          {platforms && platforms.length > 0 ? (
+            platforms.map((platform) => (
+              <option key={platform.id} value={platform.name}>
+                {platform.name}
+              </option>
+            ))
+          ) : (
+            <option disabled>Loading platforms...</option>
+          )}
         </select>
       </div>
 
@@ -213,7 +256,7 @@ const DashboardPage: React.FC = () => {
 
       {/* Chart */}
       <div className="rounded-2xl bg-[#d3dcf2] p-6 shadow-lg">
-        <h2 className="mb-4 text-xl font-semibold text-gray-700">Runs by Status</h2>
+        <h2 className="mb-4 text-xl font-semibold text-gray-700">Runs by Status (all data)</h2>
 
         <ResponsiveContainer
           width="100%"

@@ -21,4 +21,9 @@ interface TokenRequest {
   password: string;
 }
 
-export type { Run, Token, FailedTokenResponse, TokenRequest };
+interface Platform{
+  id: string,
+  name: string,
+}
+
+export type { Run, Token, FailedTokenResponse, TokenRequest, Platform };
