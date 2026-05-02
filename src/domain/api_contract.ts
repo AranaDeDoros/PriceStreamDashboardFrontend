@@ -3,6 +3,9 @@ interface Run {
   startedAt: string;
   finishedAt: string;
   status: string;
+  error: string;
+  productsProcessed?: number;
+  //platform?: string;
   [key: string]: unknown;
 }
 

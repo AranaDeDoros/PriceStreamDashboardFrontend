@@ -4,8 +4,10 @@ import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
+  getExpandedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
+import type { ExpandedState } from '@tanstack/react-table';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import type { Run } from '../domain/api_contract';
 import Card from '../components/Card';
@@ -59,6 +61,22 @@ const getStatusColor = (status: string) => {
   }
 };
 
+const formatDuration = (ms: number) => {
+  if (ms < 0) return '-';
+  const seconds = Math.floor((ms / 1000) % 60);
+  const minutes = Math.floor((ms / (1000 * 60)) % 60);
+  const hours = Math.floor((ms / (1000 * 60 * 60)) % 24);
+  const days = Math.floor(ms / (1000 * 60 * 60 * 24));
+
+  const parts = [];
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0) parts.push(`${minutes}m`);
+  if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);
+
+  return parts.join(' ');
+};
+
 const COLORS = ['#6366F1', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
 const DashboardPage: React.FC = () => {
@@ -78,6 +96,7 @@ const DashboardPage: React.FC = () => {
   } = useAllPlatforms();
   const [statusFilter, setStatusFilter] = React.useState<string>('all');
   const [platformFilter, setPlatformFilter] = React.useState<string>('all');
+  const [expanded, setExpanded] = React.useState<ExpandedState>({});
 
   const lastUpdated = Math.max(runsUpdatedAt, platformsUpdatedAt);
   const formattedLastUpdated = React.useMemo(() => {
@@ -102,6 +121,25 @@ const DashboardPage: React.FC = () => {
 
   const columns = React.useMemo(
     () => [
+      columnHelper.display({
+        id: 'expander',
+        header: () => null,
+        cell: ({ row }) => (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              row.toggleExpanded();
+            }}
+            className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-indigo-100"
+          >
+            <span
+              className={`text-indigo-600 transition-transform duration-200 ${row.getIsExpanded() ? 'rotate-90' : ''}`}
+            >
+              ▶
+            </span>
+          </button>
+        ),
+      }),
       columnHelper.accessor('id', {
         header: () => 'ID',
         cell: (info) => <CopyableId id={info.getValue()} />,
@@ -113,6 +151,17 @@ const DashboardPage: React.FC = () => {
       columnHelper.accessor('finishedAt', {
         header: () => 'Finished',
         cell: (info) => (info.getValue() ? new Date(info.getValue()).toLocaleString() : '-'),
+      }),
+      columnHelper.display({
+        id: 'duration',
+        header: () => 'Duration',
+        cell: (info) => {
+          const { startedAt, finishedAt } = info.row.original;
+          if (!startedAt || !finishedAt) return '-';
+          const start = new Date(startedAt).getTime();
+          const end = new Date(finishedAt).getTime();
+          return formatDuration(end - start);
+        },
       }),
       columnHelper.accessor('status', {
         header: () => 'Status',
@@ -133,7 +182,10 @@ const DashboardPage: React.FC = () => {
   const table = useReactTable({
     data: filteredRuns,
     columns,
+    state: { expanded },
+    onExpandedChange: setExpanded,
     getCoreRowModel: getCoreRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
   });
 
   const statusData = React.useMemo(() => {
@@ -190,8 +242,10 @@ const DashboardPage: React.FC = () => {
     <div className="mx-auto max-w-7xl space-y-10 p-6">
       <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <h1 className="text-4xl font-black tracking-tight text-gray-800">Ingestion Dashboard</h1>
-        <div className="flex items-center gap-2 text-sm font-bold text-gray-400 uppercase tracking-widest">
-          <div className={`h-2 w-2 rounded-full ${isFetching ? 'animate-pulse bg-indigo-500' : 'bg-emerald-500'}`} />
+        <div className="flex items-center gap-2 text-sm font-bold tracking-widest text-gray-400 uppercase">
+          <div
+            className={`h-2 w-2 rounded-full ${isFetching ? 'animate-pulse bg-indigo-500' : 'bg-emerald-500'}`}
+          />
           Last updated: <span className="text-gray-600">{formattedLastUpdated}</span>
         </div>
       </div>
@@ -283,19 +337,54 @@ const DashboardPage: React.FC = () => {
             </thead>
             <tbody>
               {table.getRowModel().rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className="group cursor-pointer rounded-xl bg-gradient-to-r from-[#d3dcf2] to-[#c5d1eb] shadow-sm transition-all hover:from-white hover:to-white hover:shadow-md active:scale-[0.99]"
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <td
-                      key={cell.id}
-                      className="px-4 py-3 text-sm font-medium text-gray-700 transition-colors group-hover:text-indigo-900"
-                    >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
-                </tr>
+                <React.Fragment key={row.id}>
+                  <tr
+                    onClick={() => row.toggleExpanded()}
+                    className="group cursor-pointer rounded-xl bg-gradient-to-r from-[#d3dcf2] to-[#c5d1eb] shadow-sm transition-all hover:from-white hover:to-white hover:shadow-md active:scale-[0.99]"
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <td
+                        key={cell.id}
+                        className="px-4 py-3 text-sm font-medium text-gray-700 transition-colors group-hover:text-indigo-900"
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    ))}
+                  </tr>
+                  {row.getIsExpanded() && (
+                    <tr className="bg-white/30 backdrop-blur-sm">
+                      <td colSpan={row.getVisibleCells().length} className="px-6 py-4">
+                        <div className="flex flex-col gap-4 rounded-lg border border-indigo-100 bg-white/50 p-4 shadow-inner">
+                          {row.original.error && (
+                            <div className="space-y-1">
+                              <span className="text-xs font-bold tracking-wider text-red-600 uppercase">
+                                Error Log:
+                              </span>
+                              <pre className="overflow-x-auto rounded-md border border-red-100 bg-red-50 p-3 font-mono text-xs text-red-800">
+                                {row.original.error}
+                              </pre>
+                            </div>
+                          )}
+                          {row.original.productsProcessed !== undefined && (
+                            <div className="space-y-1">
+                              <span className="text-xs font-bold tracking-wider text-indigo-600 uppercase">
+                                Products Processed:
+                              </span>
+                              <div className="rounded-md border border-indigo-100 bg-indigo-50 p-3 text-sm font-semibold text-indigo-900">
+                                {String(row.original.productsProcessed)}
+                              </div>
+                            </div>
+                          )}
+                          {!row.original.error && row.original.productsProcessed === undefined && (
+                            <div className="text-sm text-gray-500 italic">
+                              No additional details available for this run.
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
               ))}
             </tbody>
           </table>
