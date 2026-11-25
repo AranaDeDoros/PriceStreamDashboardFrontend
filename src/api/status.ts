@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import api, { API_URL } from './client';
+import api from './client';
 import type { Run } from '../domain/api_contract';
 
 const fetchRunsByStatus = async (status: string): Promise<Run[]> => {
