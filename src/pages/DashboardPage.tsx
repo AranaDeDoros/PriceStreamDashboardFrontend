@@ -31,7 +31,7 @@ const CopyableId: React.FC<{ id: string }> = ({ id }) => {
     <div className="relative inline-block">
       <span
         onClick={handleCopy}
-        className="font-mono text-xs text-gray-600 transition hover:text-indigo-600"
+        className="font-mono text-xs text-gray-600 transition hover:text-red-600"
       >
         {shortId}
       </span>
@@ -130,10 +130,10 @@ const DashboardPage: React.FC = () => {
               e.stopPropagation();
               row.toggleExpanded();
             }}
-            className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-indigo-100"
+            className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-red-100"
           >
             <span
-              className={`text-indigo-600 transition-transform duration-200 ${row.getIsExpanded() ? 'rotate-90' : ''}`}
+              className={`text-red-600 transition-transform duration-200 ${row.getIsExpanded() ? 'rotate-90' : ''}`}
             >
               ▶
             </span>
@@ -244,7 +244,7 @@ const DashboardPage: React.FC = () => {
         <h1 className="text-4xl font-black tracking-tight text-gray-800">Ingestion Dashboard</h1>
         <div className="flex items-center gap-2 text-sm font-bold tracking-widest text-gray-400 uppercase">
           <div
-            className={`h-2 w-2 rounded-full ${isFetching ? 'animate-pulse bg-indigo-500' : 'bg-emerald-500'}`}
+            className={`h-2 w-2 rounded-full ${isFetching ? 'animate-pulse bg-red-500' : 'bg-emerald-500'}`}
           />
           Last updated: <span className="text-gray-600">{formattedLastUpdated}</span>
         </div>
@@ -263,7 +263,7 @@ const DashboardPage: React.FC = () => {
         <button
           onClick={() => refetch()}
           disabled={isFetching}
-          className="flex cursor-pointer items-center gap-2 rounded-lg bg-linear-to-r from-indigo-600 to-indigo-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-all hover:from-indigo-700 hover:to-indigo-600 hover:shadow-indigo-500/25 active:scale-95 disabled:opacity-50 disabled:active:scale-100"
+          className="flex cursor-pointer items-center gap-2 rounded-lg bg-linear-to-r from-red-600 to-red-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition-all hover:from-red-700 hover:to-red-600 hover:shadow-red-500/25 active:scale-95 disabled:opacity-50 disabled:active:scale-100"
         >
           {isFetching ? (
             <>
@@ -284,7 +284,7 @@ const DashboardPage: React.FC = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium shadow-sm transition-all hover:border-gray-300 hover:shadow-md focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+              className="cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium shadow-sm transition-all hover:border-gray-300 hover:shadow-md focus:border-red-500 focus:ring-2 focus:ring-red-500/20 focus:outline-none"
             >
               <option value="all">All</option>
               <option value="completed">Completed</option>
@@ -300,7 +300,7 @@ const DashboardPage: React.FC = () => {
             <select
               value={platformFilter}
               onChange={(e) => setPlatformFilter(e.target.value)}
-              className="cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium shadow-sm transition-all hover:border-gray-300 hover:shadow-md focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+              className="cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium shadow-sm transition-all hover:border-gray-300 hover:shadow-md focus:border-red-500 focus:ring-2 focus:ring-red-500/20 focus:outline-none"
             >
               <option value="all">All</option>
               {platforms && platforms.length > 0 ? (
@@ -327,7 +327,7 @@ const DashboardPage: React.FC = () => {
                   {headerGroup.headers.map((header) => (
                     <th
                       key={header.id}
-                      className="px-4 py-2 text-left text-xs font-bold tracking-widest text-indigo-100/70 uppercase"
+                      className="px-4 py-2 text-left text-xs font-bold tracking-widest text-red-100/70 uppercase"
                     >
                       {flexRender(header.column.columnDef.header, header.getContext())}
                     </th>
@@ -345,7 +345,7 @@ const DashboardPage: React.FC = () => {
                     {row.getVisibleCells().map((cell) => (
                       <td
                         key={cell.id}
-                        className="px-4 py-3 text-sm font-medium text-gray-700 transition-colors group-hover:text-indigo-900"
+                        className="px-4 py-3 text-sm font-medium text-gray-700 transition-colors group-hover:text-red-900"
                       >
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </td>
@@ -354,7 +354,7 @@ const DashboardPage: React.FC = () => {
                   {row.getIsExpanded() && (
                     <tr className="bg-white/30 backdrop-blur-sm">
                       <td colSpan={row.getVisibleCells().length} className="px-6 py-4">
-                        <div className="flex flex-col gap-4 rounded-lg border border-indigo-100 bg-white/50 p-4 shadow-inner">
+                        <div className="flex flex-col gap-4 rounded-lg border border-red-100 bg-white/50 p-4 shadow-inner">
                           {row.original.error && (
                             <div className="space-y-1">
                               <span className="text-xs font-bold tracking-wider text-red-600 uppercase">
@@ -367,10 +367,10 @@ const DashboardPage: React.FC = () => {
                           )}
                           {row.original.productsProcessed !== undefined && (
                             <div className="space-y-1">
-                              <span className="text-xs font-bold tracking-wider text-indigo-600 uppercase">
+                              <span className="text-xs font-bold tracking-wider text-red-600 uppercase">
                                 Products Processed:
                               </span>
-                              <div className="rounded-md border border-indigo-100 bg-indigo-50 p-3 text-sm font-semibold text-indigo-900">
+                              <div className="rounded-md border border-red-100 bg-red-50 p-3 text-sm font-semibold text-red-900">
                                 {String(row.original.productsProcessed)}
                               </div>
                             </div>
@@ -439,9 +439,9 @@ const DashboardPage: React.FC = () => {
 /* Small Stat Card */
 const StatCard: React.FC<{ label: string; value?: number }> = ({ label, value }) => (
   <div className="group rounded-xl border border-[#4a5a82] bg-gradient-to-br from-[#566999] to-[#485985] p-5 shadow-xl transition-all hover:-translate-y-1 hover:shadow-2xl hover:brightness-110">
-    <div className="text-xs font-bold tracking-wider text-indigo-100/60 uppercase">{label}</div>
+    <div className="text-xs font-bold tracking-wider text-red-100/60 uppercase">{label}</div>
     <div className="mt-2 text-3xl font-black text-white">{value ?? 0}</div>
-    <div className="mt-2 h-1 w-0 bg-indigo-400 transition-all group-hover:w-full" />
+    <div className="mt-2 h-1 w-0 bg-red-400 transition-all group-hover:w-full" />
   </div>
 );
 
