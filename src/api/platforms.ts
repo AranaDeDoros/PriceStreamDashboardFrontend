@@ -4,7 +4,7 @@ import type { Platform } from '../domain/api_contract';
 
 const fetchAllPlatforms = async (): Promise<Platform[]> => {
   try {
-    const response = await api.get(`${API_URL}/ingestion/platforms`);
+    const response = await api.get(`/ingestion/platforms`);
     return response.data;
   } catch (error) {
     console.error('Error fetching all Platforms:', error);

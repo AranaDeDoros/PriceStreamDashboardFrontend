@@ -4,7 +4,7 @@ import type { Run } from '../domain/api_contract';
 
 const fetchAllRuns = async (): Promise<Run[]> => {
   try {
-    const response = await api.get(`${API_URL}/ingestion/runs`);
+    const response = await api.get(`/ingestion/runs`);
     return response.data;
   } catch (error) {
     console.error('Error fetching all runs:', error);
@@ -13,7 +13,7 @@ const fetchAllRuns = async (): Promise<Run[]> => {
 };
 
 const fetchRunById = async (runId: string): Promise<Run> => {
-  const response = await api.get(`${API_URL}/run/${runId}`);
+  const response = await api.get(`/run/${runId}`);
   return response.data;
 };
 

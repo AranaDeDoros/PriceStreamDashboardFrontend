@@ -8,7 +8,7 @@ const login = async (req: TokenRequest): Promise<Token> => {
   formData.append('username', req.username);
   formData.append('password', req.password);
 
-  const response = await api.post(`${API_URL}/auth/token`, formData, {
+  const response = await api.post(`/auth/token`, formData, {
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
     },

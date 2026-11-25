@@ -4,7 +4,7 @@ import type { Run } from '../domain/api_contract';
 
 const fetchRunsByStatus = async (status: string): Promise<Run[]> => {
   try {
-    const response = await api.get(`${API_URL}/ingestion/status/${status}`);
+    const response = await api.get(`/ingestion/status/${status}`);
     return response.data;
   } catch (error) {
     console.error(`Error fetching runs by status ${status}:`, error);
